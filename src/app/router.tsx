@@ -34,11 +34,13 @@ import { ReviewsPage } from '@/pages/pro/ReviewsPage';
 import { ReviewQueuePage } from '@/pages/admin/ReviewQueuePage';
 import { ReviewDetailPage } from '@/pages/admin/ReviewDetailPage';
 import { DisputesPage } from '@/pages/admin/DisputesPage';
+import { RootErrorBoundary } from '@/components/shared/RootErrorBoundary';
 import { ROUTES } from './routes';
 
 export const router = createBrowserRouter([
   {
     element: <MobileShell />,
+    errorElement: <RootErrorBoundary />,
     children: [
       // Auth Flow (no bottom nav)
       {

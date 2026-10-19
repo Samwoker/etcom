@@ -91,8 +91,10 @@ export const JobChatPage: React.FC = () => {
 
       <ChatThread
         messages={messages}
-        currentUserId={isProfessionalViewer ? (otherParty?.id || 'pro') : 'c1'}
+        currentUserId={isProfessionalViewer ? (job.proId || 'p1') : (job.customerId || 'c1')}
         onViewQuote={() => navigate(quoteRoute)}
+        isOpponentTyping={data.isOpponentTyping}
+        opponentName={otherParty?.fullName}
       />
 
       {/* Floating Price Offer Action Strip */}

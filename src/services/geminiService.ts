@@ -120,3 +120,4 @@ Rules:
   const fallbackList = isUserCustomer ? FALLBACK_PRO_RESPONSES : FALLBACK_CUSTOMER_RESPONSES;
   return fallbackList[Math.floor(Math.random() * fallbackList.length)];
 }
+
