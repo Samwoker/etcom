@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone } from 'lucide-react';
+import { Smartphone, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ export const MpesaPhoneInput: React.FC<MpesaPhoneInputProps> = ({
 }) => {
   // Strip +251 prefix if present for clean 9-digit editing
   const cleanInitial = initialPhone.replace(/^\+251\s?/, '').replace(/\s+/g, '');
-  const [phone, setPhone] = useState(cleanInitial || '911234567');
+  const [phone, setPhone] = useState(cleanInitial || '711234567');
   const [error, setError] = useState('');
 
   const handlePhoneChange = (val: string) => {
@@ -28,6 +28,11 @@ export const MpesaPhoneInput: React.FC<MpesaPhoneInputProps> = ({
     } else {
       setError('');
     }
+  };
+
+  const handleQuickFill = () => {
+    setPhone('711234567');
+    setError('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,9 +47,19 @@ export const MpesaPhoneInput: React.FC<MpesaPhoneInputProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="mpesa-phone" className="text-xs font-semibold text-foreground">
-          M-PESA Phone Number
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="mpesa-phone" className="text-xs font-semibold text-foreground">
+            M-PESA Phone Number
+          </Label>
+          <button
+            type="button"
+            onClick={handleQuickFill}
+            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer"
+          >
+            <Sparkles className="h-3 w-3" />
+            <span>Quick fill Safaricom (07)</span>
+          </button>
+        </div>
         <div className="relative flex items-center">
           <span className="absolute left-3 text-xs font-medium text-muted-foreground select-none">
             +251
@@ -55,7 +70,7 @@ export const MpesaPhoneInput: React.FC<MpesaPhoneInputProps> = ({
             inputMode="numeric"
             value={phone}
             onChange={(e) => handlePhoneChange(e.target.value)}
-            placeholder="9X XXX XXXX"
+            placeholder="7X XXX XXXX"
             className="pl-13 h-11 text-sm font-semibold rounded-xl bg-card border-border"
             disabled={isLoading}
             required

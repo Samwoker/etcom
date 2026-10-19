@@ -62,7 +62,7 @@ describe('Job Lifecycle & Payment Rules', () => {
     store.finishProJob('job-101', ['https://example.com/after.jpg'], 60);
 
     // Now process payment
-    const result = await store.processPayment('job-101', '+251 91 123 4567');
+    const result = await store.processPayment('job-101', '+251 71 123 4567');
     assert.equal(result.success, true);
     assert.ok(result.transactionCode);
 
@@ -87,10 +87,10 @@ describe('Job Lifecycle & Payment Rules', () => {
 
     store.startProJob('job-101', 1000, 0);
     store.finishProJob('job-101', []);
-    const firstPay = await store.processPayment('job-101', '+251 91 123 4567');
+    const firstPay = await store.processPayment('job-101', '+251 71 123 4567');
     assert.equal(firstPay.success, true);
 
-    const secondPay = await store.processPayment('job-101', '+251 91 123 4567');
+    const secondPay = await store.processPayment('job-101', '+251 71 123 4567');
     assert.equal(secondPay.success, true);
     assert.equal(secondPay.transactionCode, firstPay.transactionCode);
   });

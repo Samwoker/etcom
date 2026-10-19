@@ -12,7 +12,7 @@ export const SignupForm: React.FC = () => {
 
   const handleFillSample = () => {
     actions.setFullName(role === 'professional' ? 'Yonas Tadesse' : 'Kalkidan Bekele');
-    actions.setPhone('911223344');
+    actions.setPhone('711234567');
     if (role === 'professional' && !formData.trade) {
       actions.setTrade('Plumber');
     }

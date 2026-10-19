@@ -170,7 +170,7 @@ const SCENARIOS: Record<
         setupAction: () => {
           const store = useDemoStore.getState();
           store.setRole('customer');
-          store.processPayment('job-1', '+251 97 123 4567');
+          store.processPayment('job-1', '+251 71 123 4567');
         },
       },
     ],
