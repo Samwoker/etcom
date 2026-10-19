@@ -14,7 +14,7 @@ export function useOnboarding() {
     'Experienced tradesperson providing reliable home installation and maintenance services across Addis Ababa.'
   );
   const [avatarUrl, setAvatarUrl] = useState<string>(
-    'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150'
+    'https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=150'
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 

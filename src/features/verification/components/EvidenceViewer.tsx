@@ -41,7 +41,7 @@ export const EvidenceViewer: React.FC<EvidenceViewerProps> = ({ category, pro })
   const references = pro.references || [
     {
       name: 'Haile Lemma',
-      phone: '+251 91 234 5678',
+      phone: '+251 71 234 5678',
       relationship: 'Senior Contractor / Project Supervisor',
     },
   ];

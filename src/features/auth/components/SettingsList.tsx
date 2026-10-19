@@ -42,7 +42,7 @@ export const SettingsList: React.FC<SettingsListProps> = ({ onLogout }) => {
             </div>
             <div>
               <p className="text-xs font-semibold text-foreground">M-PESA Phone</p>
-              <p className="text-[11px] text-muted-foreground">+251 91 123 4567</p>
+              <p className="text-[11px] text-muted-foreground">+251 71 123 4567</p>
             </div>
           </div>
           <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">

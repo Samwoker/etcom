@@ -9,7 +9,7 @@ export function useSkillsSubmission() {
   const [route, setRoute] = useState<EvidenceRoute>('upload');
   const [files, setFiles] = useState<string[]>(['tvet_plumbing_diploma.pdf']);
   const [refereeName, setRefereeName] = useState<string>('Eng. Girma Wolde');
-  const [refereePhone, setRefereePhone] = useState<string>('+251 91 234 5678');
+  const [refereePhone, setRefereePhone] = useState<string>('+251 71 234 5678');
   const [refereeRelationship, setRefereeRelationship] = useState<string>('Master Contractor');
   const [isSubmitting, setIsSubmitting] = useState(false);
 

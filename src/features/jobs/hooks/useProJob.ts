@@ -4,7 +4,7 @@ import { getJobById } from '@/services/jobService';
 import type { Job, Customer } from '@/types';
 
 export function useProJob(jobId: string | undefined) {
-  const { jobs, customers, startProJob, markProJobFinished } = useDemoStore();
+  const { jobs, customers, startProJob, finishProJob, reportCustomerIssue } = useDemoStore();
   const [job, setJob] = useState<Job | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,12 +38,16 @@ export function useProJob(jobId: string | undefined) {
     loadData();
   }, [loadData, jobs]);
 
-  const handleStartWork = () => {
-    if (jobId) startProJob(jobId);
+  const handleStartWorkWithScope = (laborETB: number, materialsETB: number, reason?: string) => {
+    if (jobId) startProJob(jobId, laborETB, materialsETB, reason);
   };
 
-  const handleMarkFinished = () => {
-    if (jobId) markProJobFinished(jobId);
+  const handleFinishWorkWithPhotos = (photos: string[], durationMinutes: number) => {
+    if (jobId) finishProJob(jobId, photos, durationMinutes);
+  };
+
+  const handleReportIssue = (reason: string = 'Customer unavailable or refusing agreed price') => {
+    if (jobId) reportCustomerIssue(jobId, reason);
   };
 
   return {
@@ -52,8 +56,9 @@ export function useProJob(jobId: string | undefined) {
     isLoading,
     error,
     actions: {
-      startWork: handleStartWork,
-      markFinished: handleMarkFinished,
+      startWorkWithScope: handleStartWorkWithScope,
+      finishWorkWithPhotos: handleFinishWorkWithPhotos,
+      reportIssue: handleReportIssue,
     },
   };
 }

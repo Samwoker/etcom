@@ -10,7 +10,6 @@ import type {
   QuoteStatus,
   Quote,
   QuoteHistoryItem,
-  PaymentTerms,
   Review,
   Dispute,
   AppNotification,
@@ -18,7 +17,8 @@ import type {
   SubCity,
   IdentityStatus,
   SkillsStatus,
-} from '@/types';
+  DigitalReceipt,
+} from '../types/index.ts';
 
 import {
   INITIAL_JOBS,
@@ -28,8 +28,20 @@ import {
   INITIAL_REVIEWS,
   INITIAL_DISPUTES,
   INITIAL_NOTIFICATIONS,
-} from '@/data/initialData';
+} from '../data/initialData.ts';
 
+import { calculateJobFinancials } from '../lib/calculations.ts';
+
+export interface CancellationRecord {
+  id: string;
+  userId: string;
+  role: Role;
+  jobId: string;
+  reason: string;
+  timestamp: string;
+}
+
+export type DemoScenario = 'none' | 'need_plumber' | 'plan_painting' | 'pro_onboarding';
 
 export interface DemoStoreState {
   role: Role;
@@ -44,6 +56,9 @@ export interface DemoStoreState {
   notifications: AppNotification[];
   pendingSignup: PendingSignup | null;
   draftRequest: DraftRequest | null;
+  cancellations: CancellationRecord[];
+  activeScenario: DemoScenario;
+  scenarioStep: number;
 
   // Actions
   setRole: (role: Role) => void;
@@ -61,6 +76,9 @@ export interface DemoStoreState {
     description?: string;
     subCity?: string;
     photos?: string[];
+    diagnosticAnswers?: Record<string, string>;
+    voiceNoteUrl?: string;
+    proposedLaborETB?: number;
   }) => string;
   addMessage: (message: Message) => void;
   updateQuoteStatus: (
@@ -70,19 +88,29 @@ export interface DemoStoreState {
     counterMessage?: string
   ) => void;
   reviseQuote: (jobId: string, totalAmountETB: number, message?: string) => void;
-  confirmAgreement: (
+  confirmAgreement: (jobId: string, paymentTerms?: unknown, depositAmountETB?: number) => void;
+  dispatchJob: (jobId: string) => void;
+  arriveProAtSite: (jobId: string) => void;
+  startProJob: (
     jobId: string,
-    paymentTerms: PaymentTerms,
-    depositAmountETB?: number
+    confirmedLaborETB?: number,
+    confirmedMaterialsETB?: number,
+    scopeReason?: string
   ) => void;
+  finishProJob: (jobId: string, afterPhotos?: string[], durationMinutes?: number) => void;
+  markProJobFinished: (jobId: string, afterPhotos?: string[]) => void;
   processPayment: (
     jobId: string,
     phone: string
   ) => Promise<{ success: boolean; transactionCode?: string; error?: string }>;
   completeAndReviewJob: (
     jobId: string,
-    reviewData: { rating: number; comment: string; tags: string[]; photos?: string[] }
+    reviewData: { rating: number; comment: string; tags: string[]; photos?: string[]; consentToPublish?: boolean }
   ) => void;
+  updateSubmittedReview: (
+    reviewId: string,
+    updates: { rating?: number; comment?: string; tags?: string[] }
+  ) => { success: boolean; error?: string };
   simulateWorkFinished: (jobId?: string) => void;
   createDispute: (
     jobId: string,
@@ -90,6 +118,13 @@ export interface DemoStoreState {
     description: string,
     photos?: string[]
   ) => { dispute: Dispute; referenceNumber: string };
+  recordCancellation: (
+    jobId: string,
+    actor: 'customer' | 'professional',
+    reason: string
+  ) => { warningTriggered: boolean; penaltyTriggered: boolean };
+  reportCustomerIssue: (jobId: string, reason: string) => void;
+  reportProDidNotArrive: (jobId: string) => void;
   markNotificationAsRead: (id: string) => void;
   markAllNotificationsAsRead: (role?: Role) => void;
   saveProOnboarding: (data: {
@@ -123,8 +158,6 @@ export interface DemoStoreState {
       revisionReason?: string;
     }
   ) => void;
-  startProJob: (jobId: string) => void;
-  markProJobFinished: (jobId: string) => void;
   addSelfPortfolioItem: (
     proId: string,
     item: { title: string; category: string; description: string; photoUrl: string }
@@ -144,6 +177,8 @@ export interface DemoStoreState {
     action: 'request_info' | 'resolve_customer' | 'resolve_pro',
     note: string
   ) => void;
+  setScenario: (scenario: DemoScenario, step?: number) => void;
+  advanceScenario: () => void;
 }
 
 export const useDemoStore = create<DemoStoreState>((set, get) => ({
@@ -165,7 +200,16 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     subCity: 'Bole',
     urgency: 'today',
     verificationPreference: 'verified_skills',
+    diagnosticAnswers: {
+      issueType: 'Leak',
+      location: 'Kitchen sink',
+      duration: 'Past few days',
+      waterSupplyOff: 'Yes',
+    },
   },
+  cancellations: [],
+  activeScenario: 'none',
+  scenarioStep: 1,
 
   setRole: (role: Role) => {
     set((state) => {
@@ -216,7 +260,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
           phone: pendingSignup.phone.startsWith('+251') ? pendingSignup.phone : `+251 ${pendingSignup.phone}`,
           trade: pendingSignup.trade || 'Plumber',
           subCity: 'Bole',
-          avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          avatarUrl: 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=150',
           bio: 'Registered independent tradesperson on Etcom.',
           identityStatus: 'not_submitted',
           skillsStatus: 'not_submitted',
@@ -252,6 +296,9 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       disputes: INITIAL_DISPUTES,
       notifications: INITIAL_NOTIFICATIONS,
       pendingSignup: null,
+      cancellations: [],
+      activeScenario: 'none',
+      scenarioStep: 1,
     }),
 
   updateJob: (jobId: string, updates: Partial<Job>) =>
@@ -272,9 +319,26 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     const description =
       data.description ||
       draftRequest?.description ||
-      `Initial quote request sent to ${pro?.fullName || 'professional'}.`;
+      `Initial request sent to ${pro?.fullName || 'professional'}.`;
 
     const photos = data.photos || draftRequest?.photos || [];
+    const diagnosticAnswers = data.diagnosticAnswers || draftRequest?.diagnosticAnswers;
+    const voiceNoteUrl = data.voiceNoteUrl || draftRequest?.voiceNoteUrl;
+
+    const initialLabor = data.proposedLaborETB || (pro?.hourlyRateEstimate ? pro.hourlyRateEstimate * 2 : 1000);
+
+    const initialQuote: Quote = {
+      id: `q-${newJobId}`,
+      jobId: newJobId,
+      proId: data.proId,
+      laborAmountETB: initialLabor,
+      materialsAmountETB: 0,
+      totalAmountETB: initialLabor,
+      scopeDescription: description,
+      validUntil: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      createdAt: new Date().toISOString(),
+      status: 'requested',
+    };
 
     const newJob: Job = {
       id: newJobId,
@@ -287,8 +351,12 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       quoteStatus: 'requested',
       paymentStatus: 'unpaid',
       completionStatus: 'not_started',
+      lifecycleStage: 'request_created',
       createdAt: new Date().toISOString(),
       photos,
+      diagnosticAnswers,
+      voiceNoteUrl,
+      activeQuote: initialQuote,
     };
 
     set({ jobs: [newJob, ...jobs] });
@@ -318,7 +386,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
               actor: 'customer' as const,
               message:
                 counterMessage ||
-                (status === 'accepted' ? 'Price agreed by customer' : undefined),
+                (status === 'accepted' ? 'Agreed price locked by customer' : undefined),
               timestamp: new Date().toISOString(),
             }
           : undefined;
@@ -327,6 +395,10 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
           ? {
               ...currentQuote,
               status,
+              totalAmountETB: counterAmount || currentQuote.totalAmountETB,
+              laborAmountETB: counterAmount
+                ? Math.round(counterAmount - (currentQuote.materialsAmountETB || 0))
+                : currentQuote.laborAmountETB,
               history: historyItem
                 ? [...(currentQuote.history || []), historyItem]
                 : currentQuote.history,
@@ -336,6 +408,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
         return {
           ...job,
           quoteStatus: status,
+          lifecycleStage: status === 'accepted' ? 'accepted' : job.lifecycleStage,
           activeQuote: updatedQuote,
         };
       }),
@@ -346,7 +419,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     set((state) => ({
       jobs: state.jobs.map((job) => {
         if (job.id !== jobId || !job.activeQuote) return job;
-        const labor = Math.round(totalAmountETB * 0.7);
+        const labor = Math.round(totalAmountETB * 0.75);
         const materials = totalAmountETB - labor;
         const historyItem: QuoteHistoryItem = {
           id: `qh-${Date.now()}`,
@@ -376,68 +449,267 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     }));
   },
 
-  confirmAgreement: (jobId, paymentTerms, depositAmountETB) => {
+  // Lock agreed price without requiring upfront payment
+  confirmAgreement: (jobId) => {
+    const { addMessage } = get();
     set((state) => ({
       jobs: state.jobs.map((job) => {
         if (job.id !== jobId) return job;
-        const total = job.activeQuote?.totalAmountETB || 1000;
-        const deposit =
-          depositAmountETB || (paymentTerms === 'deposit_split' ? Math.round(total * 0.4) : total);
         return {
           ...job,
           quoteStatus: 'accepted',
-          paymentTerms,
-          depositAmountETB: deposit,
+          lifecycleStage: 'accepted',
+          paymentStatus: 'unpaid',
+          completionStatus: 'not_started',
           contactRevealed: true,
         };
       }),
     }));
+
+    addMessage({
+      id: `m-agreed-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Price agreement locked. Under Etcom rules, payment is made on-site only after work is completed.',
+      timestamp: new Date().toISOString(),
+      type: 'system',
+    });
   },
 
+  dispatchJob: (jobId) => {
+    const { addMessage } = get();
+    set((state) => ({
+      jobs: state.jobs.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              lifecycleStage: 'dispatched',
+              quoteStatus: 'accepted',
+              completionStatus: 'not_started',
+            }
+          : j
+      ),
+    }));
+
+    addMessage({
+      id: `m-dispatch-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Professional is on the way. You can track arrival on the live map.',
+      timestamp: new Date().toISOString(),
+      type: 'system',
+    });
+  },
+
+  arriveProAtSite: (jobId) => {
+    const { addMessage } = get();
+    set((state) => ({
+      jobs: state.jobs.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              lifecycleStage: 'arrived',
+            }
+          : j
+      ),
+    }));
+
+    addMessage({
+      id: `m-arrive-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Professional has arrived on-site. Scope and agreed labor price confirmation pending before work begins.',
+      timestamp: new Date().toISOString(),
+      type: 'system',
+    });
+  },
+
+  // Start work on site. Pro does NOT need prepayment. Runs the elapsed timer.
+  startProJob: (jobId, confirmedLaborETB, confirmedMaterialsETB, scopeReason) => {
+    const { addMessage } = get();
+    const now = new Date().toISOString();
+
+    set((state) => ({
+      jobs: state.jobs.map((job) => {
+        if (job.id !== jobId) return job;
+        const labor = confirmedLaborETB !== undefined ? confirmedLaborETB : (job.activeQuote?.laborAmountETB || 1000);
+        const materials = confirmedMaterialsETB !== undefined ? confirmedMaterialsETB : (job.activeQuote?.materialsAmountETB || 0);
+
+        return {
+          ...job,
+          lifecycleStage: 'in_progress',
+          completionStatus: 'in_progress',
+          paymentStatus: 'unpaid',
+          startedAt: job.startedAt || now,
+          actualLaborETB: labor,
+          actualMaterialsETB: materials,
+          scopeChangeReason: scopeReason || job.scopeChangeReason,
+        };
+      }),
+    }));
+
+    addMessage({
+      id: `m-start-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Job started on site. Scope confirmed and work timer is active.',
+      timestamp: now,
+      type: 'system',
+    });
+  },
+
+  // Pro finishes work, uploads after-photos, and stops the timer
+  finishProJob: (jobId, afterPhotos = [], durationMinutes = 45) => {
+    const { addMessage } = get();
+    const now = new Date().toISOString();
+
+    set((state) => ({
+      jobs: state.jobs.map((job) => {
+        if (job.id !== jobId) return job;
+        return {
+          ...job,
+          lifecycleStage: 'completed_pending_payment',
+          completionStatus: 'awaiting_confirmation',
+          finishedAt: now,
+          durationMinutes: job.durationMinutes || durationMinutes,
+          afterPhotos: afterPhotos.length > 0 ? afterPhotos : (job.afterPhotos || ['https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400']),
+        };
+      }),
+    }));
+
+    addMessage({
+      id: `m-finish-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Professional has completed the job and uploaded after-photos. Customer confirmation and M-PESA payment prompt requested.',
+      timestamp: now,
+      type: 'system',
+    });
+  },
+
+  markProJobFinished: (jobId, afterPhotos) => {
+    get().finishProJob(jobId, afterPhotos);
+  },
+
+  // Process M-PESA USSDPush payment on completion
   processPayment: async (jobId, phone) => {
-    const { paymentOutcome, jobs, addMessage } = get();
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const { paymentOutcome, jobs, addMessage, customers, professionals } = get();
+    const job = jobs.find((j) => j.id === jobId);
+
+    if (!job) {
+      return { success: false, error: 'Job record not found.' };
+    }
+
+    // Critical Rule: Payment can ONLY be initiated after work is finished
+    if (
+      job.completionStatus !== 'awaiting_confirmation' &&
+      job.completionStatus !== 'completed' &&
+      job.lifecycleStage !== 'completed_pending_payment' &&
+      job.lifecycleStage !== 'payment_pending' &&
+      job.lifecycleStage !== 'paid'
+    ) {
+      return {
+        success: false,
+        error: 'Cannot process payment before work is completed by the professional.',
+      };
+    }
+
+    // Duplicate payment prevention
+    if (job.paymentStatus === 'confirmed' && job.receipt) {
+      return {
+        success: true,
+        transactionCode: job.receipt.transactionCode,
+      };
+    }
+
+    // Simulate network latency for USSD push
+    await new Promise((resolve) => setTimeout(resolve, 2500));
 
     if (paymentOutcome === 'success') {
-      const txCode = `QJK7${Math.floor(1000 + Math.random() * 9000)}X`;
+      const txCode = `MPESA-TX-${Math.floor(100000 + Math.random() * 900000)}X`;
+      const now = new Date().toISOString();
+
+      const labor = job.actualLaborETB || job.activeQuote?.laborAmountETB || 1000;
+      const materials = job.actualMaterialsETB || job.activeQuote?.materialsAmountETB || 0;
+      const financials = calculateJobFinancials(labor, materials);
+
+      const customer = customers.find((c) => c.id === job.customerId);
+      const pro = professionals.find((p) => p.id === job.proId);
+
+      const receipt: DigitalReceipt = {
+        id: `rec-${Date.now()}`,
+        transactionCode: txCode,
+        jobId: job.id,
+        jobTitle: job.title,
+        category: job.category,
+        customerId: job.customerId,
+        customerName: customer?.fullName || 'Verified Customer',
+        customerPhone: customer?.phone || phone,
+        proId: job.proId,
+        proName: pro?.fullName || 'Professional Tradesperson',
+        proPhone: pro?.phone,
+        proTrade: pro?.trade || job.category,
+        laborAmountETB: financials.laborAmountETB,
+        materialsAmountETB: financials.materialsAmountETB,
+        platformFeeETB: financials.platformFeeETB,
+        professionalPayoutETB: financials.professionalPayoutETB,
+        totalCustomerPaidETB: financials.customerTotalETB,
+        paymentMethod: 'M-PESA USSDPush',
+        status: 'paid',
+        completedAt: job.finishedAt || now,
+        paidAt: now,
+      };
+
       set({
-        jobs: jobs.map((job) =>
-          job.id === jobId
+        jobs: jobs.map((j) =>
+          j.id === jobId
             ? {
-                ...job,
+                ...j,
                 paymentStatus: 'confirmed',
-                completionStatus: 'in_progress',
+                completionStatus: 'completed',
+                lifecycleStage: 'paid',
+                receipt,
               }
-            : job
+            : j
+        ),
+        professionals: professionals.map((p) =>
+          p.id === job.proId
+            ? { ...p, confirmedJobsCount: p.confirmedJobsCount + 1 }
+            : p
         ),
       });
 
       addMessage({
-        id: `m-${Date.now()}`,
+        id: `m-pay-ok-${Date.now()}`,
         jobId,
         senderId: 'system',
         senderRole: 'admin',
-        text: `Payment confirmed via M-PESA (${txCode}). Work is now officially in progress.`,
-        timestamp: new Date().toISOString(),
+        text: `M-PESA Payment Confirmed (${txCode}). Customer paid ETB ${financials.customerTotalETB}. Platform fee (8% labor): ETB ${financials.platformFeeETB}. Pro payout: ETB ${financials.professionalPayoutETB}. Digital receipt generated.`,
+        timestamp: now,
         type: 'system',
       });
 
       return { success: true, transactionCode: txCode };
     } else {
       set({
-        jobs: jobs.map((job) =>
-          job.id === jobId
+        jobs: jobs.map((j) =>
+          j.id === jobId
             ? {
-                ...job,
+                ...j,
                 paymentStatus: 'failed',
               }
-            : job
+            : j
         ),
       });
 
       return {
         success: false,
-        error: `M-PESA prompt was cancelled or timed out for ${phone}. No funds were deducted.`,
+        error: `M-PESA prompt timed out or cancelled for ${phone}. No funds deducted. Please retry.`,
       };
     }
   },
@@ -448,6 +720,9 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     if (!job) return;
 
     const customer = customers.find((c) => c.id === currentUserId);
+    const now = new Date();
+    const canEditUntil = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
     const newReview: Review = {
       id: `r-${Date.now()}`,
       jobId,
@@ -456,9 +731,11 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       customerName: customer?.fullName || 'Verified Customer',
       rating: reviewData.rating,
       comment: reviewData.comment,
-      date: new Date().toISOString(),
+      date: now.toISOString(),
       tags: reviewData.tags,
       photos: reviewData.photos,
+      canEditUntil,
+      consentToPublish: reviewData.consentToPublish ?? true,
     };
 
     set({
@@ -466,19 +743,17 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
         j.id === jobId
           ? {
               ...j,
-              completionStatus: 'completed',
+              lifecycleStage: 'payment_pending',
             }
           : j
       ),
       reviews: [newReview, ...reviews],
       professionals: professionals.map((pro) => {
         if (pro.id !== job.proId) return pro;
-        const newCount = pro.confirmedJobsCount + 1;
         const currentRatingTotal = pro.rating * (pro.reviewCount || 1);
         const newRating = Number(((currentRatingTotal + reviewData.rating) / (pro.reviewCount + 1)).toFixed(1));
         return {
           ...pro,
-          confirmedJobsCount: newCount,
           reviewCount: pro.reviewCount + 1,
           rating: newRating,
         };
@@ -486,21 +761,125 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     });
   },
 
+  updateSubmittedReview: (reviewId, updates) => {
+    const { reviews, professionals } = get();
+    const review = reviews.find((r) => r.id === reviewId);
+    if (!review) return { success: false, error: 'Review not found.' };
+
+    const now = new Date().getTime();
+    const expiry = review.canEditUntil ? new Date(review.canEditUntil).getTime() : 0;
+    if (expiry && now > expiry) {
+      return { success: false, error: 'The 2-hour review editing window has expired.' };
+    }
+
+    const updatedReview: Review = {
+      ...review,
+      rating: updates.rating !== undefined ? updates.rating : review.rating,
+      comment: updates.comment !== undefined ? updates.comment : review.comment,
+      tags: updates.tags !== undefined ? updates.tags : review.tags,
+    };
+
+    set({
+      reviews: reviews.map((r) => (r.id === reviewId ? updatedReview : r)),
+      professionals: professionals.map((pro) => {
+        if (pro.id !== review.proId) return pro;
+        return pro;
+      }),
+    });
+
+    return { success: true };
+  },
+
   simulateWorkFinished: (jobId) => {
-    set((state) => {
-      const targetJob = jobId
-        ? state.jobs.find((j) => j.id === jobId)
-        : state.jobs.find((j) => j.completionStatus === 'in_progress');
+    get().finishProJob(jobId || 'job-101');
+  },
 
-      if (!targetJob) return state;
+  recordCancellation: (jobId, actor, reason) => {
+    const { cancellations, jobs, currentUserId, role } = get();
+    const now = new Date();
+    const thirtyDaysAgo = now.getTime() - 30 * 24 * 60 * 60 * 1000;
 
-      return {
-        jobs: state.jobs.map((job) =>
-          job.id === targetJob.id
-            ? { ...job, completionStatus: 'awaiting_confirmation' }
-            : job
-        ),
-      };
+    const userPastCancellations = cancellations.filter(
+      (c) => c.userId === currentUserId && c.role === role && new Date(c.timestamp).getTime() > thirtyDaysAgo
+    );
+
+    const newCount = userPastCancellations.length + 1;
+    const warningTriggered = newCount === 2;
+    const penaltyTriggered = newCount >= 3;
+
+    const newRecord: CancellationRecord = {
+      id: `canc-${Date.now()}`,
+      userId: currentUserId,
+      role,
+      jobId,
+      reason,
+      timestamp: now.toISOString(),
+    };
+
+    set({
+      cancellations: [...cancellations, newRecord],
+      jobs: jobs.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              lifecycleStage: 'cancelled',
+              cancellationReason: reason,
+              cancelledBy: actor,
+            }
+          : j
+      ),
+    });
+
+    return { warningTriggered, penaltyTriggered };
+  },
+
+  reportCustomerIssue: (jobId, reason) => {
+    const { jobs, addMessage } = get();
+    set({
+      jobs: jobs.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              proReportedIssue: reason,
+              lifecycleStage: 'disputed',
+            }
+          : j
+      ),
+    });
+
+    addMessage({
+      id: `m-cust-issue-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: `Professional reported an issue on arrival: "${reason}". Logged for platform mediation.`,
+      timestamp: new Date().toISOString(),
+      type: 'system',
+    });
+  },
+
+  reportProDidNotArrive: (jobId) => {
+    const { jobs, addMessage } = get();
+    set({
+      jobs: jobs.map((j) =>
+        j.id === jobId
+          ? {
+              ...j,
+              customerReportedIssue: 'Professional did not arrive',
+              lifecycleStage: 'cancelled',
+            }
+          : j
+      ),
+    });
+
+    addMessage({
+      id: `m-no-show-${Date.now()}`,
+      jobId,
+      senderId: 'system',
+      senderRole: 'admin',
+      text: 'Customer reported professional did not arrive. Strike logged against professional profile.',
+      timestamp: new Date().toISOString(),
+      type: 'system',
     });
   },
 
@@ -529,7 +908,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       role: 'admin',
       type: 'dispute_opened',
       title: 'New dispute filed',
-      message: `Case ${refNum} opened: ${reason} on ${job?.title || 'job'}.`,
+      message: `Case ${refNum} opened: ${reason} on ${job?.title || 'job'}. Evidence submitted for mediation.`,
       linkRoute: '/admin/disputes',
       read: false,
       createdAt: new Date().toISOString(),
@@ -543,6 +922,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
           ? {
               ...j,
               completionStatus: 'disputed',
+              lifecycleStage: 'disputed',
             }
           : j
       ),
@@ -575,10 +955,10 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     const newPro: Professional = {
       id: existingProId,
       fullName: data.fullName,
-      phone: '+251 91 999 8888',
+      phone: '+251 71 999 8888',
       trade: data.trade,
       subCity: data.subCity,
-      avatarUrl: data.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      avatarUrl: data.avatarUrl || 'https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=150',
       bio: data.bio,
       identityStatus: 'not_submitted',
       skillsStatus: 'not_submitted',
@@ -674,7 +1054,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
               ...(pro.references || []),
               {
                 name: data.refereeName,
-                phone: data.refereePhone || '+251 91 100 2233',
+                phone: data.refereePhone || '+251 71 100 2233',
                 relationship: data.refereeRelationship || 'Supervisor',
               },
             ]
@@ -697,11 +1077,6 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
         professionals: state.professionals.map((pro) => {
           if (pro.id !== targetId) return pro;
 
-          // Cycle through 4 verification states:
-          // 1: in_review
-          // 2: verified
-          // 3: more_info_needed
-          // 4: not_verified
           if (pro.skillsStatus === 'in_review' || pro.skillsStatus === 'not_submitted') {
             return {
               ...pro,
@@ -743,7 +1118,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
   declineJobRequest: (jobId) => {
     set((state) => ({
       jobs: state.jobs.map((j) =>
-        j.id === jobId ? { ...j, quoteStatus: 'declined' } : j
+        j.id === jobId ? { ...j, quoteStatus: 'declined', lifecycleStage: 'cancelled' } : j
       ),
     }));
   },
@@ -811,22 +1186,6 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
     });
   },
 
-  startProJob: (jobId) => {
-    set((state) => ({
-      jobs: state.jobs.map((j) =>
-        j.id === jobId ? { ...j, completionStatus: 'in_progress' } : j
-      ),
-    }));
-  },
-
-  markProJobFinished: (jobId) => {
-    set((state) => ({
-      jobs: state.jobs.map((j) =>
-        j.id === jobId ? { ...j, completionStatus: 'awaiting_confirmation' } : j
-      ),
-    }));
-  },
-
   addSelfPortfolioItem: (proId, item) => {
     set((state) => ({
       professionals: state.professionals.map((pro) => {
@@ -880,7 +1239,6 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
           }
         }
 
-        // Recalculate listing status if not restricted
         if (!decision.flagForInvestigation && updates.listingStatus !== 'restricted') {
           const newIdStatus = updates.identityStatus || pro.identityStatus;
           const newSkillsStatus = updates.skillsStatus || pro.skillsStatus;
@@ -895,7 +1253,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
   },
 
   resolveDispute: (disputeId, action, note) => {
-    const { disputes, jobs, professionals, messages } = get();
+    const { disputes, jobs, messages } = get();
     const dispute = disputes.find((d) => d.id === disputeId);
     if (!dispute) return;
 
@@ -910,12 +1268,13 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       newDisputeStatus = 'resolved_refund';
       jobCompletionUpdates = {
         completionStatus: 'disputed',
+        lifecycleStage: 'disputed',
       };
     } else if (action === 'resolve_pro') {
       newDisputeStatus = 'resolved_payout';
       jobCompletionUpdates = {
         completionStatus: 'completed',
-        paymentStatus: 'confirmed',
+        lifecycleStage: 'paid',
       };
     }
 
@@ -926,10 +1285,10 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
       senderRole: 'admin',
       text:
         action === 'request_info'
-          ? `Arbitration update: ${note}. Both parties please reply with requested evidence.`
+          ? `Mediation update: ${note}. Both parties please reply with requested photos/records.`
           : action === 'resolve_customer'
-          ? `Dispute resolved in favour of customer: ${note}.`
-          : `Dispute resolved in favour of professional: ${note}. Payout released.`,
+          ? `Dispute concluded in favour of customer: ${note}. No payment deducted from customer M-PESA balance.`
+          : `Dispute concluded in favour of professional: ${note}. Work record validated.`,
       timestamp: now,
       type: 'system',
     };
@@ -942,7 +1301,7 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
               status: newDisputeStatus,
               resolutionNote: note,
               resolvedAt: action !== 'request_info' ? now : d.resolvedAt,
-              resolvedBy: 'Admin Arbitration Team',
+              resolvedBy: 'Admin Mediation Team',
             }
           : d
       ),
@@ -955,14 +1314,14 @@ export const useDemoStore = create<DemoStoreState>((set, get) => ({
           : j
       ),
       messages: [...messages, systemMsg],
-      professionals:
-        action === 'resolve_pro'
-          ? professionals.map((p) =>
-              p.id === dispute.proId
-                ? { ...p, confirmedJobsCount: p.confirmedJobsCount + 1 }
-                : p
-            )
-          : professionals,
     });
+  },
+
+  setScenario: (scenario, step = 1) => {
+    set({ activeScenario: scenario, scenarioStep: step });
+  },
+
+  advanceScenario: () => {
+    set((state) => ({ scenarioStep: state.scenarioStep + 1 }));
   },
 }));

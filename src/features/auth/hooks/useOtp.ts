@@ -24,14 +24,14 @@ export function useOtp() {
 
   // Masked phone calculation
   const getMaskedPhone = (): string => {
-    const raw = pendingSignup?.phone || '911234567';
+    const raw = pendingSignup?.phone || '711234567';
     const digits = raw.replace(/\D/g, '');
     if (digits.length >= 9) {
       const start = digits.slice(0, 2);
       const end = digits.slice(-2);
       return `+251 ${start} ••• ••${end}`;
     }
-    return '+251 91 ••• ••45';
+    return '+251 71 ••• ••45';
   };
 
   const handleOtpChange = (value: string) => {

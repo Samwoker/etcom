@@ -74,7 +74,7 @@ export const DemoSwitcher: React.FC = () => {
         <div className="space-y-4">
           {/* Role Switching */}
           <div>
-            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider mb-2 block">
+            <label className="text-xs font-semibold text-foreground mb-2 block">
               Switch Perspective
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -116,7 +116,7 @@ export const DemoSwitcher: React.FC = () => {
 
           {/* Payment Simulation Outcome */}
           <div>
-            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider mb-2 block">
+            <label className="text-xs font-semibold text-foreground mb-2 block">
               Simulated M-PESA Outcome
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -147,7 +147,7 @@ export const DemoSwitcher: React.FC = () => {
 
           {/* Verification & Lifecycle Simulation */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider block">
+            <label className="text-xs font-semibold text-foreground block">
               Pro & Job Simulations
             </label>
             <Button

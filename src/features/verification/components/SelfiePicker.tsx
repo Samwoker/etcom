@@ -9,7 +9,7 @@ interface SelfiePickerProps {
 }
 
 const SAMPLE_SELFIE_IMAGE =
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300';
+  'https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=300';
 
 export const SelfiePicker: React.FC<SelfiePickerProps> = ({
   selfieFile,

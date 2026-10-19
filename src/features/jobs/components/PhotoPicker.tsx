@@ -60,21 +60,25 @@ export const PhotoPicker: React.FC<PhotoPickerProps> = ({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-foreground">
-          Photos of the problem <span className="text-xs text-muted-foreground font-normal">(Optional, up to {maxPhotos})</span>
+        <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+          <Camera className="h-3.5 w-3.5 text-primary" />
+          <span>Photos of the problem</span>
+          <span className="text-[11px] text-muted-foreground font-normal">
+            (Optional, max {maxPhotos})
+          </span>
         </label>
         <div className="flex items-center gap-2">
           {photos.length < maxPhotos && (
             <button
               type="button"
               onClick={handleAddSample}
-              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline cursor-pointer"
             >
               <Sparkles className="h-3 w-3" />
               <span>Fill sample</span>
             </button>
           )}
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px] font-medium text-muted-foreground tabular-nums">
             {photos.length}/{maxPhotos}
           </span>
         </div>

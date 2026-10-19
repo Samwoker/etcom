@@ -11,7 +11,7 @@ export function usePayment(jobId: string | undefined) {
   const [job, setJob] = useState<Job | null>(null);
   const [pro, setPro] = useState<Professional | null>(null);
   const [step, setStep] = useState<PaymentStep>('input');
-  const [phone, setPhone] = useState('+251 91 123 4567');
+  const [phone, setPhone] = useState('+251 71 123 4567');
   const [paymentResult, setPaymentResult] = useState<{
     success: boolean;
     transactionCode?: string;
@@ -52,9 +52,9 @@ export function usePayment(jobId: string | undefined) {
     loadData();
   }, [loadData, jobs]);
 
-  const total = job?.activeQuote?.totalAmountETB || 1000;
-  const isDeposit = job?.paymentTerms === 'deposit_split';
-  const amountDueETB = isDeposit ? (job?.depositAmountETB || Math.round(total * 0.4)) : total;
+  const labor = job?.actualLaborETB || job?.activeQuote?.laborAmountETB || 1000;
+  const materials = job?.actualMaterialsETB || job?.activeQuote?.materialsAmountETB || 0;
+  const amountDueETB = labor + materials;
 
   const handleSubmitPayment = useCallback(
     async (payPhone: string) => {
@@ -79,9 +79,12 @@ export function usePayment(jobId: string | undefined) {
       job,
       pro,
       amountDueETB,
+      laborETB: labor,
+      materialsETB: materials,
       step,
       phone,
       paymentResult,
+      receipt: job?.receipt,
     },
     isLoading,
     error,

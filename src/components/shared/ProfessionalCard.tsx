@@ -6,12 +6,15 @@ import { RatingStars } from './RatingStars';
 import { VerificationBadges } from './VerificationBadges';
 import type { Professional } from '@/types';
 
+import { getDistanceKM, formatDistance } from '@/lib/location';
+
 interface ProfessionalCardProps {
   pro: Professional;
   onClick?: () => void;
   className?: string;
   compact?: boolean;
   responseTime?: string;
+  customerSubCity?: string;
 }
 
 export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
@@ -20,7 +23,9 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
   className,
   compact = false,
   responseTime,
+  customerSubCity = 'Bole',
 }) => {
+  const distance = getDistanceKM(customerSubCity, pro.subCity);
   const initials = pro.fullName
     .split(' ')
     .map((n) => n[0])
@@ -72,13 +77,13 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
       role="button"
       tabIndex={0}
       onClick={onClick}
-      className={`group cursor-pointer rounded-2xl border border-border bg-card p-0 transition-all hover:border-primary/60 hover:shadow-md active:scale-[0.99] ${className || ''}`}
+      className={`group cursor-pointer rounded-2xl border border-border/80 bg-card p-0 transition-all hover:border-primary/50 hover:shadow-xs active:scale-[0.99] ${className || ''}`}
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3.5">
-          <Avatar className="h-13 w-13 shrink-0 rounded-full border border-border">
+          <Avatar className="h-12 w-12 shrink-0 rounded-full border border-border">
             <AvatarImage src={pro.avatarUrl} alt={pro.fullName} />
-            <AvatarFallback className="font-semibold">{initials}</AvatarFallback>
+            <AvatarFallback className="font-semibold text-sm">{initials}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
@@ -90,14 +95,18 @@ export const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
                   <span className="font-medium text-foreground">{pro.trade}</span>
                   <span>•</span>
                   <span className="inline-flex items-center gap-0.5">
-                    <MapPin className="h-3 w-3" />
+                    <MapPin className="h-3.5 w-3.5 text-primary" />
                     {pro.subCity}
+                  </span>
+                  <span>•</span>
+                  <span className="text-xs font-medium text-emerald-900 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 tabular-nums">
+                    {formatDistance(distance)}
                   </span>
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <RatingStars rating={pro.rating} reviewCount={pro.reviewCount} />
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1 justify-end">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1 justify-end">
                   <Clock className="h-3 w-3" />
                   <span>{displayResponseTime}</span>
                 </div>

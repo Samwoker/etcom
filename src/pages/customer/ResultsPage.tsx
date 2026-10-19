@@ -92,6 +92,7 @@ export const ResultsPage: React.FC = () => {
               <ProfessionalCard
                 key={pro.id}
                 pro={pro}
+                customerSubCity={draftRequest?.subCity || 'Bole'}
                 onClick={() => navigate(ROUTES.CUSTOMER_PRO_DETAIL(pro.id))}
               />
             ))}

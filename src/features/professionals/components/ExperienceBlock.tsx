@@ -17,17 +17,17 @@ export const ExperienceBlock: React.FC<ExperienceBlockProps> = ({ pro }) => {
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs font-semibold text-foreground">Trade Experience</span>
           </div>
-          <Badge variant="outline" className="bg-muted text-muted-foreground text-[11px] font-normal">
+          <Badge variant="outline" className="bg-muted text-muted-foreground text-xs font-medium">
             Self-reported
           </Badge>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold tracking-tight text-foreground">
+          <span className="text-2xl font-bold tracking-tight text-foreground tabular-nums">
             {pro.claimedExperienceYears} {pro.claimedExperienceYears === 1 ? 'year' : 'years'}
           </span>
           <span className="text-xs text-muted-foreground">in {pro.trade} services</span>
         </div>
-        <p className="mt-1 text-[11px] text-muted-foreground">
+        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
           Self-reported by professional. Not independently audited by Etcom.
         </p>
       </CardContent>

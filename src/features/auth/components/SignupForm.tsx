@@ -64,7 +64,7 @@ export const SignupForm: React.FC = () => {
               type="tel"
               inputMode="numeric"
               pattern="[0-9]*"
-              placeholder="9X XXX XXXX"
+              placeholder="7X XXX XXXX"
               value={formData.phone}
               onChange={(e) => actions.setPhone(e.target.value)}
               className={`h-11 rounded-lg flex-1 font-mono tracking-wider ${

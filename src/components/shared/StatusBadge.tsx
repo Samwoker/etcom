@@ -20,14 +20,14 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   const getVariantStyles = (): string => {
     switch (variant) {
       case 'verified':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800';
+        return 'bg-emerald-50 text-emerald-900 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-800';
       case 'pending':
-        return 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800';
+        return 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800';
       case 'failed':
-        return 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800';
+        return 'bg-red-50 text-red-900 border-red-300 dark:bg-red-950/50 dark:text-red-200 dark:border-red-800';
       case 'neutral':
       default:
-        return 'bg-muted text-muted-foreground border-border';
+        return 'bg-muted/60 text-muted-foreground border-border';
     }
   };
 

@@ -4,11 +4,13 @@ import { CreditCard } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { Button } from '@/components/ui/button';
 import {
   PaymentSummary,
   MpesaPhoneInput,
   MpesaPrompt,
   PaymentResult,
+  DigitalReceiptCard,
   usePayment,
 } from '@/features/payments';
 import { ROUTES } from '@/app/routes';
@@ -45,15 +47,15 @@ export const PaymentPage: React.FC = () => {
     );
   }
 
-  const { job, pro, amountDueETB, step, phone, paymentResult } = data;
+  const { job, pro, amountDueETB, step, phone, paymentResult, receipt } = data;
 
   return (
     <div className="flex flex-1 flex-col pb-12">
       <PageHeader
-        title="M-PESA Payment"
+        title={step === 'result' && paymentResult?.success ? 'Payment Receipt' : 'M-PESA Payment'}
         subtitle={job.title}
         showBack={step === 'input'}
-        onBack={() => navigate(ROUTES.CUSTOMER_JOB_CONFIRM(job.id))}
+        onBack={() => navigate(ROUTES.CUSTOMER_JOB_DETAIL(job.id))}
       />
 
       <div className="w-full max-w-xl md:max-w-2xl mx-auto px-4 py-4 space-y-4 flex-1 flex flex-col justify-center">
@@ -71,11 +73,27 @@ export const PaymentPage: React.FC = () => {
           <MpesaPrompt phone={phone} amountETB={amountDueETB} />
         )}
 
-        {step === 'result' && paymentResult && (
+        {step === 'result' && paymentResult?.success && receipt && (
+          <div className="space-y-4 animate-in fade-in-50 duration-300">
+            <DigitalReceiptCard
+              receipt={receipt}
+              viewerRole="customer"
+              onClose={() => navigate(ROUTES.CUSTOMER_HOME)}
+            />
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.CUSTOMER_PRO_DETAIL(job.proId))}
+              className="w-full h-11 rounded-xl text-xs font-semibold border-border gap-1.5"
+            >
+              <span>View Professional's Updated Portfolio Card</span>
+            </Button>
+          </div>
+        )}
+
+        {step === 'result' && paymentResult && !paymentResult.success && (
           <PaymentResult
-            success={paymentResult.success}
+            success={false}
             amountETB={amountDueETB}
-            transactionCode={paymentResult.transactionCode}
             errorMessage={paymentResult.error}
             onTrackJob={() => navigate(ROUTES.CUSTOMER_JOB_DETAIL(job.id))}
             onRetry={actions.retry}
