@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDemoStore } from '@/store/demoStore';
 import { getJobById } from '@/services/jobService';
 import { getProfessionalById } from '@/services/professionalService';
-import type { Job, Professional, PaymentTerms } from '@/types';
+import type { Job, Professional } from '@/types';
 
 export function useAgreement(jobId: string | undefined) {
-  const { confirmAgreement: storeConfirmAgreement, jobs } = useDemoStore();
+  const { confirmAgreement: storeConfirmAgreement, dispatchJob, jobs } = useDemoStore();
   const [job, setJob] = useState<Job | null>(null);
   const [pro, setPro] = useState<Professional | null>(null);
-  const [paymentTerms, setPaymentTerms] = useState<PaymentTerms>('deposit_split');
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,9 +27,6 @@ export function useAgreement(jobId: string | undefined) {
         setError('Job not found');
       } else {
         setJob(jobData);
-        if (jobData.paymentTerms) {
-          setPaymentTerms(jobData.paymentTerms);
-        }
         const proData = await getProfessionalById(jobData.proId);
         setPro(proData);
       }
@@ -45,33 +41,28 @@ export function useAgreement(jobId: string | undefined) {
     loadData();
   }, [loadData, jobs]);
 
-  const total = job?.activeQuote?.totalAmountETB || 0;
-  const depositAmountETB = paymentTerms === 'deposit_split' ? Math.round(total * 0.4) : total;
-
   const handleConfirmAgreement = useCallback(async () => {
     if (!jobId || !isAgreed) return;
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
-      storeConfirmAgreement(jobId, paymentTerms, depositAmountETB);
+      storeConfirmAgreement(jobId);
+      dispatchJob(jobId);
     } finally {
       setIsSubmitting(false);
     }
-  }, [jobId, isAgreed, paymentTerms, depositAmountETB, storeConfirmAgreement]);
+  }, [jobId, isAgreed, storeConfirmAgreement, dispatchJob]);
 
   return {
     data: {
       job,
       pro,
-      paymentTerms,
-      depositAmountETB,
       isAgreed,
     },
     isLoading,
     isSubmitting,
     error,
     actions: {
-      setPaymentTerms,
       setIsAgreed,
       confirmAgreement: handleConfirmAgreement,
       refetch: loadData,

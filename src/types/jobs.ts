@@ -1,6 +1,21 @@
 import type { Quote, QuoteStatus } from './quotes';
+import type { DigitalReceipt } from './receipt';
 
-// Job: three SEPARATE statuses. One never implies another.
+// Explicit Job Lifecycle matching Etcom pay-on-completion architecture:
+// request_created -> accepted -> dispatched -> arrived -> in_progress -> completed_pending_payment -> payment_pending -> paid
+export type JobLifecycleStage =
+  | 'request_created'
+  | 'accepted'
+  | 'dispatched'
+  | 'arrived'
+  | 'in_progress'
+  | 'completed_pending_payment'
+  | 'payment_pending'
+  | 'paid'
+  | 'cancelled'
+  | 'disputed';
+
+// Job: three independent axes for backwards compatibility and audit
 export type PaymentStatus =
   | 'unpaid'
   | 'pending'
@@ -28,9 +43,9 @@ export interface DraftRequest {
   subCity: string;
   urgency: UrgencyOption;
   verificationPreference: VerificationPreferenceOption;
+  diagnosticAnswers?: Record<string, string>;
+  voiceNoteUrl?: string;
 }
-
-export type PaymentTerms = 'full' | 'deposit_split';
 
 export interface Job {
   id: string;
@@ -43,12 +58,28 @@ export interface Job {
   quoteStatus: QuoteStatus;
   paymentStatus: PaymentStatus;
   completionStatus: CompletionStatus;
+  lifecycleStage?: JobLifecycleStage;
   activeQuote?: Quote;
   createdAt: string;
   scheduledDate?: string;
-  paymentTerms?: PaymentTerms;
-  depositAmountETB?: number;
   contactRevealed?: boolean;
   photos?: string[];
+  afterPhotos?: string[];
+  voiceNoteUrl?: string;
+  diagnosticAnswers?: Record<string, string>;
+  startedAt?: string;
+  finishedAt?: string;
+  durationMinutes?: number;
+  actualLaborETB?: number;
+  actualMaterialsETB?: number;
+  scopeChangeReason?: string;
+  materialReceiptUrl?: string;
+  receipt?: DigitalReceipt;
+  cancellationReason?: string;
+  cancelledBy?: 'customer' | 'professional';
+  customerReportedIssue?: string;
+  proReportedIssue?: string;
+  // Legacy compatibility (optional)
+  paymentTerms?: 'full';
+  depositAmountETB?: number;
 }
-

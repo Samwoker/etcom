@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDemoStore } from '@/store/demoStore';
 import { ServiceGrid, TopProfessionalsRow } from '@/features/professionals';
 import { ActiveJobBanner } from '@/features/jobs';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
 import { ROUTES } from '@/app/routes';
 
 export const HomePage: React.FC = () => {
@@ -42,12 +43,15 @@ export const HomePage: React.FC = () => {
             Selam, {firstName}
           </h1>
         </div>
-        <Avatar className="h-10 w-10 border border-border">
-          <AvatarImage src={currentCustomer?.avatarUrl} alt={currentCustomer?.fullName} />
-          <AvatarFallback className="bg-secondary text-primary font-semibold text-xs">
-            {firstName.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          <Avatar className="h-10 w-10 border border-border">
+            <AvatarImage src={currentCustomer?.avatarUrl} alt={currentCustomer?.fullName} />
+            <AvatarFallback className="bg-secondary text-primary font-semibold text-xs">
+              {firstName.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </div>
 
       {/* Interactive Search Input Form */}

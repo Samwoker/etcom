@@ -36,31 +36,31 @@ export const VerificationSummaryCard: React.FC<VerificationSummaryCardProps> = (
         )}
 
         <div className="flex items-center justify-between text-xs pt-0.5">
-          <div className="flex items-center gap-1.5 font-bold text-foreground">
+          <div className="flex items-center gap-1.5 font-semibold text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
             <span>Verification Status</span>
           </div>
-          <Badge variant="outline" className="text-[10px] capitalize">
+          <Badge variant="outline" className="text-xs capitalize font-medium">
             {identityStatus.replace('_', ' ')}
           </Badge>
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
-          <div className="p-1.5 rounded-lg bg-muted/60 border border-border/40">
-            <span className="text-muted-foreground block">ID</span>
-            <span className={`font-bold ${identityStatus === 'verified' ? 'text-primary' : 'text-foreground'}`}>
+        <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+          <div className="p-2 rounded-xl bg-muted/50 border border-border/60">
+            <span className="text-muted-foreground block text-xs">Identity</span>
+            <span className={`font-semibold text-xs ${identityStatus === 'verified' ? 'text-primary' : 'text-foreground'}`}>
               {identityStatus === 'verified' ? 'Verified' : 'Pending'}
             </span>
           </div>
-          <div className="p-1.5 rounded-lg bg-muted/60 border border-border/40">
-            <span className="text-muted-foreground block">Skills</span>
-            <span className={`font-bold ${skillsStatus === 'evidence_accepted' ? 'text-primary' : 'text-foreground'}`}>
-              {skillsStatus === 'evidence_accepted' ? 'Verified' : 'Unchecked'}
+          <div className="p-2 rounded-xl bg-muted/50 border border-border/60">
+            <span className="text-muted-foreground block text-xs">Skills</span>
+            <span className={`font-semibold text-xs ${skillsStatus === 'evidence_accepted' ? 'text-primary' : 'text-foreground'}`}>
+              {skillsStatus === 'evidence_accepted' ? 'Verified' : 'Self-reported'}
             </span>
           </div>
-          <div className="p-1.5 rounded-lg bg-muted/60 border border-border/40">
-            <span className="text-muted-foreground block">Jobs</span>
-            <span className="font-bold text-foreground">{confirmedJobsCount}</span>
+          <div className="p-2 rounded-xl bg-muted/50 border border-border/60">
+            <span className="text-muted-foreground block text-xs">Work History</span>
+            <span className="font-semibold text-foreground text-xs tabular-nums">{confirmedJobsCount} jobs</span>
           </div>
         </div>
 

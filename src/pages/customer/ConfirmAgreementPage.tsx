@@ -9,9 +9,9 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { StickyCta } from '@/components/shared/StickyCta';
 import {
   AgreementSummary,
-  PaymentTermsPicker,
   useAgreement,
 } from '@/features/jobs';
+import { PayOnCompletionGuarantee } from '@/features/jobs/components/PayOnCompletionGuarantee';
 import { ROUTES } from '@/app/routes';
 
 export const ConfirmAgreementPage: React.FC = () => {
@@ -46,12 +46,13 @@ export const ConfirmAgreementPage: React.FC = () => {
     );
   }
 
-  const { job, pro, paymentTerms, isAgreed } = data;
+  const { job, pro, isAgreed } = data;
   const quote = job.activeQuote;
 
   const handleConfirm = async () => {
     await actions.confirmAgreement();
-    navigate(ROUTES.CUSTOMER_JOB_PAY(job.id));
+    // Dispatch pro and navigate to Job Tracker (arrival tracking)
+    navigate(ROUTES.CUSTOMER_JOB_DETAIL(job.id));
   };
 
   return (
@@ -66,14 +67,13 @@ export const ConfirmAgreementPage: React.FC = () => {
       <div className="w-full max-w-xl md:max-w-2xl mx-auto px-4 py-4 space-y-4">
         <AgreementSummary job={job} pro={pro} />
 
-        <PaymentTermsPicker
-          totalAmountETB={quote?.totalAmountETB || 0}
-          selectedTerms={paymentTerms}
-          onTermsChange={actions.setPaymentTerms}
+        <PayOnCompletionGuarantee
+          laborAmountETB={quote?.laborAmountETB || 1000}
+          materialsAmountETB={quote?.materialsAmountETB || 0}
         />
 
         {/* Agreement Checkbox */}
-        <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/40 border border-border">
+        <div className="flex items-start gap-3 p-3.5 rounded-xl bg-muted/40 border border-border">
           <Checkbox
             id="agreement-terms"
             checked={isAgreed}
@@ -81,13 +81,13 @@ export const ConfirmAgreementPage: React.FC = () => {
             className="mt-0.5"
           />
           <Label htmlFor="agreement-terms" className="text-xs font-normal text-foreground leading-relaxed cursor-pointer">
-            I agree to these terms and acknowledge that direct phone and messaging details will be shared upon payment confirmation.
+            I confirm the agreed labor price of <strong>{quote?.laborAmountETB || 1000} ETB</strong>. I understand that no money is deducted upfront, and payment will be completed on-site via M-PESA PIN when work is finished.
           </Label>
         </div>
       </div>
 
       <StickyCta
-        primaryLabel="Confirm and continue to payment"
+        primaryLabel="Lock price and dispatch professional"
         primaryDisabled={!isAgreed || isSubmitting}
         primaryLoading={isSubmitting}
         onPrimaryClick={handleConfirm}

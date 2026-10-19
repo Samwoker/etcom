@@ -14,29 +14,29 @@ export const VerifiedJobCard: React.FC<VerifiedJobCardProps> = ({ job }) => {
     <Card className="border-border shadow-xs hover:border-primary/40 transition-colors">
       <CardContent className="p-3.5 space-y-2.5">
         <div className="flex items-center justify-between gap-2">
-          <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-semibold gap-1">
-            <CheckCircle2 className="h-3 w-3" />
+          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-medium gap-1">
+            <CheckCircle2 className="h-3.5 w-3.5" />
             Confirmed by customer, paid with M-PESA
           </Badge>
-          <span className="text-[10px] font-mono text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {formatRelativeTime(job.createdAt)}
           </span>
         </div>
 
         <div>
-          <h4 className="text-xs font-bold text-foreground leading-snug">{job.title}</h4>
-          <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed mt-0.5">
+          <h4 className="text-xs font-semibold text-foreground leading-snug">{job.title}</h4>
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mt-0.5">
             {job.activeQuote?.scopeDescription || job.description}
           </p>
         </div>
 
-        <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[11px]">
+        <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
           <div className="flex items-center gap-1 text-muted-foreground">
-            <MapPin className="h-3 w-3" />
+            <MapPin className="h-3.5 w-3.5 text-primary" />
             <span>{job.subCity} Sub-City</span>
           </div>
           {job.activeQuote?.totalAmountETB && (
-            <span className="font-bold text-foreground font-mono">
+            <span className="font-semibold text-foreground tabular-nums">
               {formatETB(job.activeQuote.totalAmountETB)}
             </span>
           )}

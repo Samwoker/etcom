@@ -1,10 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { StickyCta } from '@/components/shared/StickyCta';
@@ -13,6 +11,7 @@ import {
   ReviewForm,
   useReviewJob,
 } from '@/features/reviews';
+import { formatETB } from '@/lib/format';
 import { ROUTES } from '@/app/routes';
 
 export const CompletePage: React.FC = () => {
@@ -23,7 +22,7 @@ export const CompletePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col">
-        <PageHeader title="How did it go?" showBack />
+        <PageHeader title="Job Sign-off & Review" showBack />
         <div className="w-full max-w-xl md:max-w-2xl mx-auto p-4 space-y-4">
           <Skeleton className="h-40 w-full rounded-xl" />
           <Skeleton className="h-64 w-full rounded-xl" />
@@ -35,7 +34,7 @@ export const CompletePage: React.FC = () => {
   if (error || !data.job) {
     return (
       <div className="flex flex-1 flex-col">
-        <PageHeader title="How did it go?" showBack />
+        <PageHeader title="Job Sign-off & Review" showBack />
         <EmptyState
           icon={AlertTriangle}
           title="Job not found"
@@ -47,31 +46,35 @@ export const CompletePage: React.FC = () => {
     );
   }
 
-  const { job, pro, workAgreed, rating, tags, comment, photos, showThankYouDialog } = data;
+  const { job, workAgreed, rating, tags, comment, photos } = data;
 
-  const handleCtaClick = () => {
+  const handleCtaClick = async () => {
     if (workAgreed === 'no') {
       navigate(ROUTES.CUSTOMER_JOB_DISPUTE(job.id));
     } else if (workAgreed === 'yes') {
-      actions.submitReview();
+      await actions.submitReview();
+      navigate(ROUTES.CUSTOMER_JOB_PAY(job.id));
     }
   };
 
   const isAgreedYes = workAgreed === 'yes';
   const isAgreedNo = workAgreed === 'no';
 
+  const total = (job.actualLaborETB || job.activeQuote?.laborAmountETB || 1000) +
+                (job.actualMaterialsETB || job.activeQuote?.materialsAmountETB || 0);
+
   return (
     <div className="flex flex-1 flex-col pb-28">
       <PageHeader
-        title="How did it go?"
+        title="Job Sign-off & Review"
         subtitle={job.title}
         showBack
         onBack={() => navigate(ROUTES.CUSTOMER_JOB_DETAIL(job.id))}
       />
 
       <div className="w-full max-w-xl md:max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Step 1: Completion Checklist */}
-        <Card className="border-border shadow-sm">
+        {/* Step 1: Completion Inspection Checklist */}
+        <Card className="border-border shadow-xs rounded-2xl">
           <CardContent className="p-4">
             <CompletionChecklist
               value={workAgreed}
@@ -80,10 +83,10 @@ export const CompletePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Step 2: Rating & Review (shown when work completed as agreed) */}
+        {/* Step 2: Rating & Review Form with Consent to Publish */}
         {isAgreedYes && (
-          <Card className="border-border shadow-sm animate-in fade-in-50 duration-200">
-            <CardContent className="p-4">
+          <Card className="border-border shadow-xs rounded-2xl animate-in fade-in-50 duration-200">
+            <CardContent className="p-4 space-y-3">
               <ReviewForm
                 rating={rating}
                 onRatingChange={actions.setRating}
@@ -94,46 +97,30 @@ export const CompletePage: React.FC = () => {
                 photos={photos}
                 onPhotosChange={actions.setPhotos}
               />
+
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <span>2-hour review editing window active after payment</span>
+                </span>
+                <span className="font-semibold text-foreground">{formatETB(total)} due</span>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Sticky CTA adapts based on outcome */}
+      {/* Sticky CTA */}
       <StickyCta
-        primaryLabel={isAgreedNo ? 'Report a problem' : 'Confirm and submit'}
+        primaryLabel={
+          isAgreedNo
+            ? 'Report a problem & open dispute'
+            : `Confirm Review & Pay ${formatETB(total)} via M-PESA`
+        }
         primaryDisabled={workAgreed === null || isSubmitting}
         primaryLoading={isSubmitting}
         onPrimaryClick={handleCtaClick}
       />
-
-      {/* Thank you Dialog upon successful review submission */}
-      <Dialog open={showThankYouDialog} onOpenChange={actions.setShowThankYouDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="items-center text-center space-y-2">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <CheckCircle2 className="h-7 w-7" />
-            </div>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              Thank you for your review!
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground max-w-xs">
-              Your feedback for {pro?.fullName || 'the tradesperson'} has been confirmed. Their verified work history and rating have been updated.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="pt-2">
-            <Button
-              onClick={() => {
-                actions.setShowThankYouDialog(false);
-                navigate(ROUTES.CUSTOMER_HOME);
-              }}
-              className="w-full rounded-full font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Done
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

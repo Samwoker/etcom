@@ -61,7 +61,7 @@ export const ReferenceForm: React.FC<ReferenceFormProps> = ({
             <Input
               value={phone}
               onChange={(e) => onPhoneChange(e.target.value)}
-              placeholder="+251 91 ••• ••••"
+              placeholder="+251 71 ••• ••••"
               className="text-xs h-9 rounded-lg"
             />
           </div>

@@ -3,7 +3,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatETB } from '@/lib/format';
-import type { PaymentTerms } from '@/types';
+
+export type PaymentTerms = 'full' | 'deposit_split';
 
 interface PaymentTermsPickerProps {
   totalAmountETB: number;

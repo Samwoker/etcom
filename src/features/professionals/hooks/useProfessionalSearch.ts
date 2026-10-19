@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { useDemoStore } from '@/store/demoStore';
 import type { VerificationPreferenceOption } from '@/types';
 
-export type SortOption = 'best_match' | 'rating' | 'most_jobs';
+import { getDistanceKM } from '@/lib/location';
+
+export type SortOption = 'best_match' | 'distance' | 'rating' | 'most_jobs';
 
 const SYNONYMS: Record<string, string[]> = {
   plumber: ['leak', 'pipe', 'tap', 'drain', 'water', 'shower', 'sink', 'toilet', 'tank', 'fitting', 'plumb'],
@@ -96,17 +98,22 @@ export function useProfessionalSearch() {
     // 'all' includes newly registered / unverified pros
 
     // 4. Sorting
-    if (sortBy === 'rating') {
+    const customerSubCity = draftRequest?.subCity || 'Bole';
+
+    if (sortBy === 'distance') {
+      list.sort((a, b) => getDistanceKM(customerSubCity, a.subCity) - getDistanceKM(customerSubCity, b.subCity));
+    } else if (sortBy === 'rating') {
       list.sort((a, b) => b.rating - a.rating || b.confirmedJobsCount - a.confirmedJobsCount);
     } else if (sortBy === 'most_jobs') {
       list.sort((a, b) => b.confirmedJobsCount - a.confirmedJobsCount || b.rating - a.rating);
     } else {
-      // Best match: subCity affinity + rating + confirmed jobs
+      // Best match: combined proximity + rating + verified jobs
       list.sort((a, b) => {
-        const aAreaMatch = a.subCity === draftRequest?.subCity ? 1 : 0;
-        const bAreaMatch = b.subCity === draftRequest?.subCity ? 1 : 0;
-        if (bAreaMatch !== aAreaMatch) return bAreaMatch - aAreaMatch;
-        return b.rating - a.rating || b.confirmedJobsCount - a.confirmedJobsCount;
+        const distA = getDistanceKM(customerSubCity, a.subCity);
+        const distB = getDistanceKM(customerSubCity, b.subCity);
+        const scoreA = a.rating * 2 + (a.confirmedJobsCount > 5 ? 2 : 0) - distA * 0.4;
+        const scoreB = b.rating * 2 + (b.confirmedJobsCount > 5 ? 2 : 0) - distB * 0.4;
+        return scoreB - scoreA;
       });
     }
 

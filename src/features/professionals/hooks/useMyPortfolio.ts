@@ -40,7 +40,7 @@ export function useMyPortfolio() {
         title: 'Emergency water pump replacement in CMC',
         category: 'Plumbing',
         description: 'Submersible 2HP Italian pump wiring and check-valve replacement.',
-        photoUrl: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=400',
+        photoUrl: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400',
         createdAt: '2026-07-25T14:30:00Z',
       },
     ];

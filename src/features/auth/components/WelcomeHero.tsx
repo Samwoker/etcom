@@ -5,16 +5,6 @@ import { Badge } from '@/components/ui/badge';
 export const WelcomeHero: React.FC = () => {
   return (
     <div className="flex flex-col items-center text-center pt-1 md:pt-3">
-      {/* City & M-PESA Status Pill */}
-      <div className="inline-flex items-center gap-2 rounded-full bg-secondary/80 border border-primary/20 px-3.5 py-1 text-xs font-medium text-primary mb-3 shadow-2xs backdrop-blur-xs">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-        </span>
-        <span>Addis Ababa</span>
-        <span className="text-muted-foreground/60">•</span>
-        <span>M-PESA Protected</span>
-      </div>
 
       {/* Brand & Main Headlines */}
       <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-primary">

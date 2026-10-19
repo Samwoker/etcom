@@ -12,7 +12,7 @@ export const SignupForm: React.FC = () => {
 
   const handleFillSample = () => {
     actions.setFullName(role === 'professional' ? 'Yonas Tadesse' : 'Kalkidan Bekele');
-    actions.setPhone('911223344');
+    actions.setPhone('711234567');
     if (role === 'professional' && !formData.trade) {
       actions.setTrade('Plumber');
     }
@@ -64,7 +64,7 @@ export const SignupForm: React.FC = () => {
               type="tel"
               inputMode="numeric"
               pattern="[0-9]*"
-              placeholder="9X XXX XXXX"
+              placeholder="7X XXX XXXX"
               value={formData.phone}
               onChange={(e) => actions.setPhone(e.target.value)}
               className={`h-11 rounded-lg flex-1 font-mono tracking-wider ${

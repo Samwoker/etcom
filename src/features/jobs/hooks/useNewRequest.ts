@@ -14,11 +14,18 @@ export function useNewRequest() {
 
   const [formData, setFormData] = useState<DraftRequest>({
     category: initialCategory,
-    description: draftRequest?.description || 'My shower is leaking and the tap is hard to turn',
+    description: draftRequest?.description || 'Main pressure valve under kitchen sink is leaking water onto floor',
     photos: draftRequest?.photos || [],
     subCity: draftRequest?.subCity || 'Bole',
     urgency: draftRequest?.urgency || 'today',
     verificationPreference: draftRequest?.verificationPreference || 'verified_skills',
+    diagnosticAnswers: draftRequest?.diagnosticAnswers || {
+      issueType: 'Leak / Burst Pipe',
+      location: 'Kitchen Sink',
+      duration: 'Happened today',
+      waterSupplyOff: 'Yes, water is off',
+    },
+    voiceNoteUrl: draftRequest?.voiceNoteUrl,
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +39,6 @@ export function useNewRequest() {
     }
   }, [searchParams, formData.category]);
 
-  // Persist draft to demoStore on changes
   const updateField = <K extends keyof DraftRequest>(field: K, value: DraftRequest[K]) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
@@ -40,6 +46,15 @@ export function useNewRequest() {
       return updated;
     });
     if (field === 'description' && error) setError(null);
+  };
+
+  const handleDiagnosticChange = (key: string, value: string) => {
+    setFormData((prev) => {
+      const updatedAnswers = { ...prev.diagnosticAnswers, [key]: value };
+      const updated = { ...prev, diagnosticAnswers: updatedAnswers };
+      setDraftRequest(updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -53,7 +68,6 @@ export function useNewRequest() {
     setIsLoading(true);
     setDraftRequest(formData);
 
-    // Simulate matching engine calculation
     await new Promise((resolve) => setTimeout(resolve, 350));
     setIsLoading(false);
     navigate(ROUTES.CUSTOMER_RESULTS);
@@ -71,6 +85,8 @@ export function useNewRequest() {
       setUrgency: (urgency: UrgencyOption) => updateField('urgency', urgency),
       setVerificationPreference: (verificationPreference: VerificationPreferenceOption) =>
         updateField('verificationPreference', verificationPreference),
+      setDiagnosticAnswer: handleDiagnosticChange,
+      setVoiceNoteUrl: (url?: string) => updateField('voiceNoteUrl', url),
       handleSubmit,
     },
   };

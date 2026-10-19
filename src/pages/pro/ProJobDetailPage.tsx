@@ -75,8 +75,9 @@ export const ProJobDetailPage: React.FC = () => {
           job={job}
           onOpenChat={() => navigate(ROUTES.CUSTOMER_JOB_CHAT(job.id))}
           onReviseQuote={() => navigate(`/p/jobs/${job.id}/quote`)}
-          onStartWork={actions.startWork}
-          onMarkFinished={actions.markFinished}
+          onStartWorkWithScope={actions.startWorkWithScope}
+          onFinishWorkWithPhotos={actions.finishWorkWithPhotos}
+          onReportIssue={() => actions.reportIssue('Customer unavailable or refusing agreed price')}
         />
       </div>
     </div>

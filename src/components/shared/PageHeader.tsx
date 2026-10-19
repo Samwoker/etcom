@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LanguageSelector } from './LanguageSelector';
 
 interface PageHeaderProps {
   title: string;
@@ -9,6 +10,7 @@ interface PageHeaderProps {
   onBack?: () => void;
   action?: React.ReactNode;
   subtitle?: string;
+  showLanguage?: boolean;
 }
 
 export const PageHeader: React.FC<PageHeaderProps> = ({
@@ -17,6 +19,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   onBack,
   action,
   subtitle,
+  showLanguage = true,
 }) => {
   const navigate = useNavigate();
 
@@ -51,7 +54,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           )}
         </div>
       </div>
-      {action && <div className="flex shrink-0 items-center">{action}</div>}
+      <div className="flex shrink-0 items-center gap-1.5">
+        {action}
+        {showLanguage && <LanguageSelector mobile />}
+      </div>
     </header>
   );
 };

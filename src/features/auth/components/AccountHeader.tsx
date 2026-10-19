@@ -17,8 +17,8 @@ export const AccountHeader: React.FC<AccountHeaderProps> = ({ customer }) => {
     .join('')
     .slice(0, 2);
 
-  // Mask phone number: e.g. +251 91 123 4567 -> +251 91 ••• 4567
-  const rawPhone = customer?.phone || '+251 91 123 4567';
+  // Mask phone number: e.g. +251 71 123 4567 -> +251 71 ••• 4567
+  const rawPhone = customer?.phone || '+251 71 123 4567';
   const parts = rawPhone.split(' ');
   const maskedPhone =
     parts.length >= 4

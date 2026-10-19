@@ -65,7 +65,7 @@ export function useSignup() {
     if (!formData.phone) {
       newErrors.phone = 'Phone number is required';
     } else if (formData.phone.length !== 9) {
-      newErrors.phone = 'Enter a valid 9-digit number (e.g. 91 123 4567)';
+      newErrors.phone = 'Enter a valid 9-digit number (e.g. 71 123 4567)';
     }
 
     if (role === 'professional' && !formData.trade) {

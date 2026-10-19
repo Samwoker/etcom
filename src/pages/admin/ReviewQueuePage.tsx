@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
 import {
   QueueItem,
   QueueFilters,
@@ -36,7 +37,10 @@ export const ReviewQueuePage: React.FC = () => {
               {count} pending
             </Badge>
           </div>
-          <ShieldCheck className="h-4 w-4 text-primary" />
+          <div className="flex items-center gap-2">
+            <LanguageSelector mobile />
+            <ShieldCheck className="h-4 w-4 text-primary" />
+          </div>
         </div>
       </div>
 

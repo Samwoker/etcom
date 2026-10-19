@@ -9,18 +9,22 @@ interface ChatThreadProps {
   messages: Message[];
   currentUserId: string;
   onViewQuote: () => void;
+  isOpponentTyping?: boolean;
+  opponentName?: string;
 }
 
 export const ChatThread: React.FC<ChatThreadProps> = ({
   messages,
   currentUserId,
   onViewQuote,
+  isOpponentTyping = false,
+  opponentName,
 }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isOpponentTyping]);
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -48,6 +52,20 @@ export const ChatThread: React.FC<ChatThreadProps> = ({
                 onViewQuote={onViewQuote}
               />
             ))}
+
+            {isOpponentTyping && (
+              <div className="flex items-center gap-2 py-2 px-3 rounded-2xl bg-muted/80 text-muted-foreground w-fit text-xs border border-border/50 animate-in fade-in-50 duration-200">
+                <span className="flex gap-1 items-center px-0.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
+                </span>
+                <span className="text-[11px] font-medium">
+                  {opponentName ? `${opponentName} is typing...` : 'Replying...'}
+                </span>
+              </div>
+            )}
+
             <div ref={bottomRef} />
           </div>
         )}

@@ -9,5 +9,7 @@ export interface Review {
   date: string;
   tags?: string[];
   photos?: string[];
+  canEditUntil?: string; // ISO timestamp 2 hours after creation
+  consentToPublish?: boolean;
 }
 

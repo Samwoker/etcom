@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { LanguageSelector } from '@/components/shared/LanguageSelector';
 import { EarningsCard, NextJobCard, useProDashboard } from '@/features/jobs';
 import { VerificationSummaryCard } from '@/features/verification';
 import { ROUTES } from '@/app/routes';
@@ -44,6 +45,7 @@ export const DashboardPage: React.FC = () => {
             <p className="text-xs text-muted-foreground">{pro.trade} • {pro.subCity} Sub-City</p>
           </div>
         </div>
+        <LanguageSelector />
       </div>
 
       <div className="w-full max-w-xl md:max-w-2xl mx-auto px-4 py-2 space-y-4">

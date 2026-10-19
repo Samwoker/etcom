@@ -59,6 +59,7 @@ export const ResultsFilters: React.FC<ResultsFiltersProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="best_match">Best match</SelectItem>
+              <SelectItem value="distance">Nearest first</SelectItem>
               <SelectItem value="rating">Highest rating</SelectItem>
               <SelectItem value="most_jobs">Most jobs</SelectItem>
             </SelectContent>
