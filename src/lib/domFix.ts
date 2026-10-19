@@ -47,3 +47,4 @@ export function installDomPolyfills() {
 
 // Automatically install upon import
 installDomPolyfills();
+
