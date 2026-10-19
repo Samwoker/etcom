@@ -1,0 +1,178 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: var(--font-sans);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-status-verified: var(--status-verified);
+  --color-status-verified-foreground: var(--status-verified-foreground);
+  --color-status-verified-bg: var(--status-verified-bg);
+  --color-status-pending: var(--status-pending);
+  --color-status-pending-foreground: var(--status-pending-foreground);
+  --color-status-pending-bg: var(--status-pending-bg);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-foreground: var(--status-neutral-foreground);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+  --color-status-failed: var(--status-failed);
+  --color-status-failed-foreground: var(--status-failed-foreground);
+  --color-status-failed-bg: var(--status-failed-bg);
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+:root {
+  /* Safaricom M-PESA Ethiopia Brand Colors & Canvas */
+  --background: #F8FAF8;
+  --foreground: #111827;
+
+  --card: #FFFFFF;
+  --card-foreground: #111827;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #111827;
+
+  /* Primary Safaricom Kelly Green: #00A859 */
+  --primary: #00A859;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary Mint Green Tint */
+  --secondary: #E6F8EE;
+  --secondary-foreground: #055C3A;
+
+  --accent: #E6F8EE;
+  --accent-foreground: #055C3A;
+
+  /* Safaricom Red / Destructive: #E20613 */
+  --destructive: #E20613;
+  --destructive-foreground: #FFFFFF;
+
+  /* Warning Amber: #F59E0B */
+  --warning: #F59E0B;
+  --warning-foreground: #78350F;
+
+  /* Surface / Muted: #F1F4F1, text: #64748B */
+  --muted: #F1F4F1;
+  --muted-foreground: #64748B;
+
+  /* Border / Input: #C4E5CD (Refined M-PESA greenish mint border instead of plain grey) */
+  --border: #C4E5CD;
+  --input: #C4E5CD;
+  --ring: #00A859;
+
+  /* Tripartite Status Colors */
+  --status-verified: #00A859;
+  --status-verified-foreground: #055C3A;
+  --status-verified-bg: #E6F8EE;
+
+  --status-pending: #F59E0B;
+  --status-pending-foreground: #78350F;
+  --status-pending-bg: #FEF3C7;
+
+  --status-neutral: #64748B;
+  --status-neutral-foreground: #334155;
+  --status-neutral-bg: #F1F5F9;
+
+  --status-failed: #E20613;
+  --status-failed-foreground: #991B1B;
+  --status-failed-bg: #FEEAEA;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: #0E1310;
+  --foreground: #F4F6F4;
+
+  --card: #151C17;
+  --card-foreground: #F4F6F4;
+
+  --popover: #151C17;
+  --popover-foreground: #F4F6F4;
+
+  --primary: #00B554;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #132E1D;
+  --secondary-foreground: #86EFAC;
+
+  --accent: #132E1D;
+  --accent-foreground: #86EFAC;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --warning: #F59E0B;
+  --warning-foreground: #FEF3C7;
+
+  --muted: #1B241E;
+  --muted-foreground: #94A3B8;
+
+  /* Border / Input: #1F522E (Deep emerald greenish border for dark theme) */
+  --border: #1F522E;
+  --input: #1F522E;
+  --ring: #00B554;
+
+  --status-verified: #00B554;
+  --status-verified-foreground: #86EFAC;
+  --status-verified-bg: #0F3319;
+
+  --status-pending: #F59E0B;
+  --status-pending-foreground: #FDE68A;
+  --status-pending-bg: #35260A;
+
+  --status-neutral: #94A3B8;
+  --status-neutral-foreground: #CBD5E1;
+  --status-neutral-bg: #1E293B;
+
+  --status-failed: #EF4444;
+  --status-failed-foreground: #FCA5A5;
+  --status-failed-bg: #3B1216;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  html {
+    @apply font-sans;
+  }
+
+  /* Cohesive greenish borders & rings across all card components */
+  [data-slot="card"] {
+    border-color: var(--border);
+    --tw-ring-color: var(--border);
+  }
+}

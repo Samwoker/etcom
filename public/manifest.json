@@ -1,0 +1,76 @@
+{
+  "name": "Etcom - Verified Local Services",
+  "short_name": "Etcom",
+  "description": "Verified local service marketplace for Addis Ababa, Ethiopia. Connect with verified plumbers, electricians, and independent tradespeople.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#09090b",
+  "theme_color": "#059669",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "business",
+    "utilities",
+    "productivity",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Professionals",
+      "short_name": "Find Pros",
+      "description": "Browse and hire verified plumbers, electricians, and tradespeople",
+      "url": "/results",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Active Jobs",
+      "short_name": "My Jobs",
+      "description": "Track ongoing jobs, payments, and completion",
+      "url": "/jobs",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Incoming Requests",
+      "short_name": "Requests",
+      "description": "View client requests and send price offers",
+      "url": "/p/requests",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
